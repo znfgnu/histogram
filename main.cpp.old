@@ -1,0 +1,73 @@
+#include<iostream>
+#include<fstream>
+#include<vector>
+#include"Histogram.h"
+
+using namespace std;
+
+Histogram h1,h2;
+
+bool isRunning;
+vector< pair< string, void(*)() > > v;
+
+void printopts(){
+	for(int i=1; i<v.size(); i++) cout << i << ")\t" << v[i].first << endl;
+	cout << "0)\t" << v[0].first << endl;
+}
+
+void newh1(){
+	h1 = Histogram();
+}
+
+void newh2(){
+	h2 = Histogram();
+}
+
+void bar(){
+	cout << "bar" << endl;
+}
+
+void quit(){
+	isRunning=false;
+}
+
+void cline(){
+	v.push_back(make_pair("quit",quit));
+	v.push_back(make_pair("! Nowa h1",newh1));
+	v.push_back(make_pair("! Nowa h2",newh2));
+	v.push_back(make_pair("= h2 = h1 + h2",sumh2));
+	v.push_back(make_pair("= h2 = h1 - h2",subh2));
+	v.push_back(make_pair("= h2 = h1 * h2",h2));
+	v.push_back(make_pair("+ Add value in h1",addh1));
+	v.push_back(make_pair("+ Add value in h2",addh2));
+	v.push_back(make_pair("- Sub value in h1",subh1));
+	v.push_back(make_pair("- Sub value in h2",subh2));
+
+	isRunning = true;
+	while(isRunning){
+		cout << "h1: " << h1 << "h2: " << h2;
+		printopts();
+		int x;
+		cin >> x;
+		if(x>=0 && x<=v.size()) v[x].second();
+		cout << "Press any key to continue...\n";
+		cin.get(), cin.get();
+	}
+	cout << "Goodbye!" << endl;
+}
+
+int main(){
+	Histogram h;
+	std::ifstream ifile("test.txt");
+	cout << "Wczytuje wyrazy z pliku...\n";
+	h << ifile;
+	cout << "Skonczylem.\n";
+
+	h << "lol";
+
+//	cout << "testowanie wypisywania poszczegolnych elementow: " << h["test"] << " " << h["abrakadabra"] << " koniec!\n";
+//	cout << "testowanie wypisywania calosci: " << h;
+	cline();
+	return 0;
+}
+
