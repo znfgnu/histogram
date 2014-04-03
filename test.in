@@ -1,0 +1,49 @@
+newhist	# tworze drugi histogram (pierwszy jest tworzony domyslnie)
+howmany	# kontrolnie sprawdzamy, ile jest histogramow
+
+# ----------- Histogram 0 -------------
+debug Histogram 0
+# ustawiamy aktualny histogram na zerowy
+set1 0
+
+# dodawanie
+addval olo 3
+# odejmowanie wiekszego - w rezultacie 'olo' zniknie z histogramu 0
+subval olo 4
+
+# ustawiamy wartosc a na 2014
+setval a 2014
+# a nastepnie odejmujemy 14
+subval a 14
+# ustawiamy b poprzez dodanie 2033 (b wczesniej nie isnialo w histogramie)
+addval b 2033
+
+# proba usuniecia z nieistniejacego
+subval abbas 300
+
+setval cokolwiek 7
+
+print
+
+# ----------- Histogram 1 -------------
+debug Histogram 1
+# ustawiamy aktualny histogram na pierwszy
+set1 1
+addval olo 4
+setval b 1033
+setval
+print
+
+# ------- Wykonujemy operacje --------
+debug Operacje
+set1 0	# ustawiamy odpowiednio wskazniki na zerowy
+set2 1	# ... i pierwszy histogram
+
+addh	# dodajemy (wynik pojawi sie pod indeksem 2)
+subh	# odejmujemy (... pod indeksem 3)
+mulh	# przeciecie (... pod indeksem 4)
+
+# ------------- Wypisanie ------------
+printall
+quit
+
