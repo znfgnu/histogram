@@ -128,25 +128,97 @@ Histogram::TreeNode* Histogram::TreeNode::getMax()
 	return this->right->getMax();
 }
 
-void Histogram::deleteNode(Histogram::TreeNode* tn)
+void Histogram::swapNodes(Histogram::TreeNode* a, Histogram::TreeNode* b)
 {
-	Histogram::TreeNode* replacement;
-	if (tn->left == 0 && tn->right == 0) replacement=0;	// if leaf
-	else if (tn->right == 0) replacement = tn->left;	// if node with left child
-	else if (tn->left == 0) replacement = tn->right;	// if node with right child
-	else throw "Not implemented yet.";	// if node with both children	TODO
-	
-	if (tn->parent != 0)	// if not root
+	Histogram::TreeNode *bParent, *bLeft, *bRight;
+	bParent = b->parent;
+	bLeft = b->left;
+	bRight = b->right;
+
+	if (a->left) a->left->parent = b;
+	if (a->right) a->right->parent = b;
+	if (a->parent)
 	{
-		if (tn->parent->left == tn) tn->parent->left=replacement;
-		else tn->parent->right=replacement;
-
-		if (replacement) replacement->parent=tn->parent;
+		if (a->parent->left == a) a->parent->left = b;
+		else a->parent->right = b;
 	}
-	else this->root = replacement;	// if root, update root
+	else this->root = b;
+	b->left = a->left;
+	b->right = a->right;
+	b->parent = a->parent;
 
-	delete tn;
-	return;
+	if (bLeft) bLeft->parent = a;
+	if (bRight) bRight->parent = a;
+	if (bParent)
+	{
+		if (bParent->left == b) bParent->left = a;
+		else bParent->right = a;
+	}
+	else this->root = a;
+
+	a->left = bLeft;
+	a->right = bRight;
+	a->parent = bParent;
+}
+
+void Histogram::deleteNode(Histogram::TreeNode* tn)
+{	while(true)
+	{
+		if (tn->isLeaf())
+		{
+			if(tn->parent)
+			{
+				if(tn->parent->left == tn) tn->parent->left=0;
+				else tn->parent->right=0;
+			}
+			else this->root=0;
+			tn->clear();
+			delete tn;
+			return;
+		}
+
+		else if (tn->left)	// jesli ma lewego syna
+		{
+			if(tn->parent)
+			{
+				if(tn->parent->left == tn) tn->parent->left = tn->left;
+				else tn->parent->right = tn->left;
+				tn->left->parent = tn->parent;
+			}
+			else	// jesli root
+			{
+				tn->left->parent=0;
+				this->root = tn->left;
+			}
+			tn->clear();
+			delete tn;
+			return;
+		}
+	
+		else if (tn->right)
+		{
+			if(tn->parent)
+			{
+				if(tn->parent->right == tn) tn->parent->right = tn->right;
+				else tn->parent->left = tn->right;
+				tn->right->parent = tn->parent;
+			}
+			else
+			{
+				tn->right->parent=0;
+				this->root = tn->right;
+			}
+			tn->clear();
+			delete tn;
+			return;
+		}
+	
+		else
+		{
+			Histogram::TreeNode *replacement = tn->getNext();	// jesli na dwoje synow, to bedzie miec tez nastepnik
+			this->swapNodes(tn, replacement);
+		}
+	}
 }
 
 // usuwanie w sensie czyszczenia pamięci - usuwa poddrzewo
@@ -159,8 +231,8 @@ Histogram::TreeNode::~TreeNode()
 void Histogram::subValue(const keydata &key, const valdata &val)
 {
 	valdata &nodeval = (*this)[key];
-	if (val < nodeval) nodeval = val;
-	else nodeval = 0;
+	if (val < nodeval) nodeval -= val;
+	else this->deleteNode(this->getNodeByKey(key));	// legalne, bo TreeNode stworzyl sie przy okazji &nodeval=...
 }
 
 void Histogram::addValue(const keydata &key, const valdata &val)
@@ -171,9 +243,25 @@ void Histogram::addValue(const keydata &key, const valdata &val)
 
 void Histogram::setValue(const keydata &key, const valdata &val)
 {
-	valdata &nodeval = (*this)[key];
-	nodeval = val;
+	if (val == 0)
+	{
+		Histogram::TreeNode *tn = this->getNodeByKey(key);
+		if (tn) this->deleteNode(tn);
+	}
+	else
+	{
+		valdata &nodeval = (*this)[key];
+		nodeval = val;
+	}
 }
+
+valdata Histogram::getValue(const keydata &key)
+{
+	Histogram::TreeNode *tn = this->getNodeByKey(key);
+	if (tn) return tn->val;
+	return 0;
+}
+
 Histogram Histogram::operator+(const Histogram& h2)
 {
 	Histogram& h1=*this;
@@ -271,5 +359,17 @@ Histogram Histogram::operator*(const Histogram& h2)
 		else ++it2;
 	}
 	return res;
+}
+
+Histogram::TreeNode* Histogram::copyTree(const TreeNode* tn) const
+{
+	if (tn == 0) return 0;
+	Histogram::TreeNode* nd = new Histogram::TreeNode();
+	nd->key = tn->key;
+	nd->val = tn->val;
+	nd->left = tn->left ? this->copyTree(tn->left) : 0;
+	nd->right = tn->right ? this->copyTree(tn->right) : 0;
+	return nd;
+
 }
 

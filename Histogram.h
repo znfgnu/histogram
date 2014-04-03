@@ -8,13 +8,13 @@
 typedef std::string keydata;
 typedef unsigned int valdata;
 
-// usuwanie elementow o wartosci 0! TODO
 class Histogram{
 	private:
 		struct TreeNode{
 			TreeNode *left, *right, *parent;
 			keydata key;
 			valdata val;
+			TreeNode() {};
 			TreeNode(const keydata &key, TreeNode *par) { this->left=0, this->right=0, this->key=key; this->parent=par; this->val=0; };
 			bool operator<(TreeNode const &tn) { return this->key < tn.key; };
 			~TreeNode();
@@ -23,15 +23,19 @@ class Histogram{
 			TreeNode* getNext();
 			TreeNode* getMin();
 			TreeNode* getMax();
-//			bool hasAnySon(){ return (this->left!=0 || this->right!=0); };
+			void clear() { this->parent=0; this->left=0; this->right=0; };
+			bool isLeaf(){ return (this->left==0 && this->right==0); };
 		};
 		TreeNode* getNodeByKey(const keydata&) const;
+		TreeNode* copyTree(const TreeNode* tn) const;
 		TreeNode* createNewNode(const keydata&);
-		void deleteNode(TreeNode*);	// TODO
+		void deleteNode(TreeNode*);
 		TreeNode* root;
 		valdata& operator[](const keydata&);
+		void swapNodes(TreeNode*, TreeNode*);
 	public:
 		Histogram();
+		Histogram(const Histogram& h2) {this->root = h2.copyTree(h2.root); };
 		~Histogram();
 		// dodawanie - suma, elementy w obydwoch drzewach, jeśli te same klucze - suma
 		Histogram operator+(const Histogram&);
@@ -46,8 +50,7 @@ class Histogram{
 		void setValue(const keydata&, const valdata&);
 		void addValue(const keydata&, const valdata&);
 		void subValue(const keydata&, const valdata&);
-
-//		getValue
+		valdata getValue(const keydata&);
 		
 		class Iterator{
 			private:
@@ -62,9 +65,8 @@ class Histogram{
 				keydata getKey(){ return this->cur->key; };
 		};
 
-		Iterator begin() const { return Iterator(root->getMin()); };
+		Iterator begin() const { return root != 0 ? Iterator(root->getMin()) : 0; };
 		Iterator end() const { return Iterator(0); };
 };
-
 
 #endif
